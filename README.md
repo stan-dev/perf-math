@@ -1,5 +1,11 @@
-## first time if you don't have google benchmark library installed
+## Getting started
+```
+git clone --recursive git@github.com:seantalts/perf-math.git
+```
 
+### First run 
+
+(unless you have the Google benchmark library installed)
 ```
 cd benchmark
 mkdir build
@@ -8,11 +14,24 @@ cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
 ```
 
-## Making a benchmark
+## Writing a benchmark
 There is an example, this matstuff.cpp. You can make your own or reuse this
 file. See https://github.com/google/benchmark for details.
 
-## remaking a benchmark
+Essential structure:
+```cpp
+static void BM_Name(benchmark::State& state) {
+  setup();
+  for (auto _ : state) {
+    thing_to_time();
+  }
+}
+BENCHMARK(BM_Name);
+
+BENCHMARK_MAIN();
+```
+
+## Making a benchmark
 ```
 $ make matstuff && ./matstuff 
 c++ -Imath/lib/eigen_3.3.3/ -Ibenchmark/include -std=c++1y -Imath/
