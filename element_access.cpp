@@ -2,9 +2,6 @@
 #include <Eigen/Dense>
 #include <stan/math/rev/core.hpp>
 
-const int R = -1;
-const int C = -1;
-
 static void escape(void *p) {
   asm volatile("" : : "g"(p) : "memory");
 }
