@@ -14,9 +14,7 @@ static void clobber() {
 }
 
 static void BM_EigenElementAccess(benchmark::State& state) {
-  using Eigen::Matrix;
   using Eigen::MatrixXd;
-  using namespace stan::math;
   auto m_d = MatrixXd::Random(500, 500).eval();
 
   for (auto _ : state) {
@@ -28,10 +26,21 @@ static void BM_EigenElementAccess(benchmark::State& state) {
 }
 BENCHMARK(BM_EigenElementAccess);
 
-static void BM_VectorElementAccess(benchmark::State& state) {
-  using std::vector;
+static void BM_EigenCoeff(benchmark::State& state) {
   using Eigen::MatrixXd;
-  using namespace stan::math;
+  auto m_d = MatrixXd::Random(500, 500).eval();
+
+  for (auto _ : state) {
+    // Actual task
+    escape(m_d.data());
+    m_d.coeff(400);
+    clobber();
+  }
+}
+BENCHMARK(BM_EigenCoeff);
+
+static void BM_VectorElementAccess(benchmark::State& state) {
+  using Eigen::MatrixXd;
 
   auto m_d = MatrixXd::Random(500, 500).eval();
   std::vector<double> v_d;
