@@ -8,8 +8,8 @@ git clone --recursive git@github.com:seantalts/perf-math.git
 (unless you have the Google benchmark library installed)
 ```
 cd benchmark
-mkdir build
-cd build
+git clone https://github.com/google/googletest
+mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
 ```
