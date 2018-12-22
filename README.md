@@ -1,6 +1,6 @@
 ## Getting started
 ```
-git clone --recursive git@github.com:seantalts/perf-math.git
+git clone --recursive https://github.com/seantalts/perf-math.git
 ```
 
 ### First run 
