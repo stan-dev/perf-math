@@ -1,0 +1,5 @@
+-Imath/lib/eigen_3.3.3/
+-Ibenchmark/include
+-Imath/
+-Imath/lib/boost_1.66.0
+-std=c++1y
