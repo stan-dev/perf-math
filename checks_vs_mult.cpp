@@ -109,12 +109,12 @@ static void BM_Mult(benchmark::State& state) {
 BENCHMARK_TEMPLATE(BM_Check, double, double, double)->Arg(25);
 BENCHMARK_TEMPLATE(BM_BobCheck, double, double, double)->Arg(25);
 BENCHMARK_TEMPLATE(BM_Mult, double, double, double)->Arg(25);
-BENCHMARK_TEMPLATE(BM_Check, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
-BENCHMARK_TEMPLATE(BM_BobCheck, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
-BENCHMARK_TEMPLATE(BM_Mult, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
 BENCHMARK_TEMPLATE(BM_Check, double, double, double)->Arg(500);
 BENCHMARK_TEMPLATE(BM_BobCheck, double, double, double)->Arg(500);
 BENCHMARK_TEMPLATE(BM_Mult, double, double, double)->Arg(500);
+BENCHMARK_TEMPLATE(BM_Check, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
+BENCHMARK_TEMPLATE(BM_BobCheck, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
+BENCHMARK_TEMPLATE(BM_Mult, stan::math::var, stan::math::var, stan::math::var)->Arg(25);
 BENCHMARK_TEMPLATE(BM_Check, stan::math::var, stan::math::var, stan::math::var)->Arg(500);
 BENCHMARK_TEMPLATE(BM_BobCheck, stan::math::var, stan::math::var, stan::math::var)->Arg(500);
 BENCHMARK_TEMPLATE(BM_Mult, stan::math::var, stan::math::var, stan::math::var)->Arg(500);
