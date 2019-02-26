@@ -26,6 +26,9 @@ stan::math::var garch(const std::vector<double>& y, const double sigma1,
 
 
 static void benchmark_autodiff_stack(benchmark::State& state) {
+#ifdef FEATURE_TLS
+  stan::math::ChainableStack::init();
+#endif
   int T = 200;
   std::vector<double> y
     = {
