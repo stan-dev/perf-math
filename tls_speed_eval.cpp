@@ -2,14 +2,6 @@
 #include <stan/math/rev/mat.hpp>
 #include <random>
 
-static void escape(void *p) {
-  asm volatile("" : : "g"(p) : "memory");
-}
-
-static void clobber() {
-  asm volatile("" : : : "memory");
-}
-
 stan::math::var garch(const std::vector<double>& y, const double sigma1,
 		      stan::math::var& mu, stan::math::var& alpha0,
 		      stan::math::var& alpha1, stan::math::var& beta1) {
@@ -75,25 +67,25 @@ static void benchmark_autodiff_stack(benchmark::State& state) {
        5.28480409924716};
   double sigma1 = 0.5;
 
-  std::mt19937 rng(std::random_device{}());  
+  std::mt19937 rng(std::random_device{}());
 
-  std::vector<double> gradients;
+  std::vector<double> gradients(6);
   std::uniform_real_distribution<double> mu_dist(-10.0, 10.0);
   std::uniform_real_distribution<double> zero_one(0, 1);
-  
+
   for (auto _ : state) {
+    benchmark::DoNotOptimize(gradients.data());
     stan::math::var mu = mu_dist(rng);
     stan::math::var alpha0 = zero_one(rng);
     stan::math::var alpha1 = zero_one(rng);
     stan::math::var beta1 = zero_one(rng) * (1.0 - alpha1);
-    
+
     std::vector<stan::math::var> vars = {mu, alpha0, alpha1, beta1};
-    
+
     stan::math::var lp = garch(y, sigma1, mu, alpha0, alpha1, beta1);
     lp.grad(vars, gradients);
-    //benchmark::DoNotOptimize(gradients.data());
-    escape(gradients.data());
     stan::math::recover_memory();
+    benchmark::ClobberMemory();
   }
 }
 
@@ -132,20 +124,21 @@ static void benchmark_autodiff_stack_coupled_mm(benchmark::State& state) {
   stan::math::ChainableStack::init();
 #endif
   double t0 = 0;
-  
+
   std::vector<double> ts_long;
   ts_long.push_back(1E3);
-  
+
   std::vector<double> ts_short;
   ts_short.push_back(1);
-  
+
   std::vector<double> data;
   std::vector<int> data_int;
-  
-  std::vector<double> gradients;
+
+  std::vector<double> gradients(6);
   coupled_mm_ode_fun f_;
 
   for (auto _ : state) {
+    benchmark::DoNotOptimize(gradients.data());
     std::vector<stan::math::var> theta
       = {0.932858, 1.27742, 5.40574, 0.1821505};
     std::vector<stan::math::var> y0_v
@@ -157,11 +150,10 @@ static void benchmark_autodiff_stack_coupled_mm(benchmark::State& state) {
     std::vector<std::vector<stan::math::var>> res
       = stan::math::integrate_ode_rk45(f_, y0_v, t0, ts_long, theta, data,
 				       data_int, 0, 1E-6, 1E-6, 1000000000);
-    
+
     res[0][0].grad(vars, gradients);
-    //benchmark::DoNotOptimize(gradients.data());
-    escape(gradients.data());
     stan::math::recover_memory();
+    benchmark::ClobberMemory();
   }
 }
 
@@ -170,39 +162,39 @@ static void benchmark_autodiff_stack_coupled_mm_nested(benchmark::State& state) 
   stan::math::ChainableStack::init();
 #endif
   double t0 = 0;
-  
+
   std::vector<double> ts_long;
   ts_long.push_back(1E3);
-  
+
   std::vector<double> ts_short;
   ts_short.push_back(1);
-  
+
   std::vector<double> data;
   std::vector<int> data_int;
-  
-  std::vector<double> gradients;
+
+  std::vector<double> gradients(6);
   coupled_mm_ode_fun f_;
 
   for (auto _ : state) {
+    benchmark::DoNotOptimize(gradients.data());
     for (int n = 0; n < 2; ++n) {
       stan::math::start_nested();
-      
+
       std::vector<stan::math::var> theta
 	= {0.932858, 1.27742, 5.40574, 0.1821505};
       std::vector<stan::math::var> y0_v
 	= {158.981, 20.7287};
-      
+
       std::vector<stan::math::var> vars
 	= {theta[0], theta[1], theta[2], theta[3], y0_v[0], y0_v[1]};
-      
+
       std::vector<std::vector<stan::math::var>> res
 	= stan::math::integrate_ode_rk45(f_, y0_v, t0, ts_long, theta, data,
 					 data_int, 0, 1E-6, 1E-6, 1000000000);
 
       res[0][n].grad(vars, gradients);
-      //benchmark::DoNotOptimize(gradients.data());
-      escape(gradients.data());
       stan::math::recover_memory_nested();
+      benchmark::ClobberMemory();
     }
     stan::math::recover_memory();
   }
