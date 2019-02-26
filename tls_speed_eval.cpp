@@ -74,20 +74,11 @@ static void benchmark_autodiff_stack(benchmark::State& state) {
 
   std::mt19937 rng(std::random_device{}());  
 
-  double mu_dbl = 4.0;
-  double alpha0_dbl = 0.2;
-  double alpha1_dbl = 0.8;
-  double beta1_dbl = 0.1;
-
   std::vector<double> gradients;
   std::uniform_real_distribution<double> mu_dist(-10.0, 10.0);
   std::uniform_real_distribution<double> zero_one(0, 1);
   
   for (auto _ : state) {
-    // stan::math::var mu = mu_dbl;
-    // stan::math::var alpha0 = alpha0_dbl;
-    // stan::math::var alpha1 = alpha1_dbl;
-    // stan::math::var beta1 = beta1_dbl;
     stan::math::var mu = mu_dist(rng);
     stan::math::var alpha0 = zero_one(rng);
     stan::math::var alpha1 = zero_one(rng);
