@@ -91,7 +91,8 @@ static void benchmark_autodiff_stack(benchmark::State& state) {
     
     stan::math::var lp = garch(y, sigma1, mu, alpha0, alpha1, beta1);
     lp.grad(vars, gradients);
-    benchmark::DoNotOptimize(gradients.data());
+    //benchmark::DoNotOptimize(gradients.data());
+    escape(gradients.data());
     stan::math::recover_memory();
   }
 }
