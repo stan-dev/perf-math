@@ -97,6 +97,120 @@ static void benchmark_autodiff_stack(benchmark::State& state) {
   }
 }
 
+
+struct coupled_mm_ode_fun {
+  template <typename T0, typename T1, typename T2>
+  inline std::vector<typename stan::return_type<T1, T2>::type>
+  // initial time
+  // initial positions
+  // parameters
+  // double data
+  // integer data
+  operator()(const T0& t_in, const std::vector<T1>& y,
+             const std::vector<T2>& parms, const std::vector<double>& sx,
+             const std::vector<int>& sx_int, std::ostream* msgs) const {
+    std::vector<typename stan::return_type<T1, T2>::type> ydot(2);
+
+    const T2 act = parms[0];
+    const T2 KmA = parms[1];
+    const T2 deact = parms[2];
+    const T2 KmAp = parms[3];
+
+    ydot[0]
+        = -1 * (act * y[0] / (KmA + y[0])) + 1 * (deact * y[1] / (KmAp + y[1]));
+    ydot[1]
+        = 1 * (act * y[0] / (KmA + y[0])) - 1 * (deact * y[1] / (KmAp + y[1]));
+
+    return (ydot);
+  }
+};
+
+
+
+static void benchmark_autodiff_stack_coupled_mm(benchmark::State& state) {
+#ifdef FEATURE_TLS
+  stan::math::ChainableStack::init();
+#endif
+  double t0 = 0;
+  
+  std::vector<double> ts_long;
+  ts_long.push_back(1E3);
+  
+  std::vector<double> ts_short;
+  ts_short.push_back(1);
+  
+  std::vector<double> data;
+  std::vector<int> data_int;
+  
+  std::vector<double> gradients;
+  coupled_mm_ode_fun f_;
+
+  for (auto _ : state) {
+    std::vector<stan::math::var> theta
+      = {0.932858, 1.27742, 5.40574, 0.1821505};
+    std::vector<stan::math::var> y0_v
+      = {158.981, 20.7287};
+
+    std::vector<stan::math::var> vars
+      = {theta[0], theta[1], theta[2], theta[3], y0_v[0], y0_v[1]};
+
+    std::vector<std::vector<stan::math::var>> res
+      = stan::math::integrate_ode_rk45(f_, y0_v, t0, ts_long, theta, data,
+				       data_int, 0, 1E-6, 1E-6, 1000000000);
+    
+    res[0][0].grad(vars, gradients);
+    //benchmark::DoNotOptimize(gradients.data());
+    escape(gradients.data());
+    stan::math::recover_memory();
+  }
+}
+
+static void benchmark_autodiff_stack_coupled_mm_nested(benchmark::State& state) {
+#ifdef FEATURE_TLS
+  stan::math::ChainableStack::init();
+#endif
+  double t0 = 0;
+  
+  std::vector<double> ts_long;
+  ts_long.push_back(1E3);
+  
+  std::vector<double> ts_short;
+  ts_short.push_back(1);
+  
+  std::vector<double> data;
+  std::vector<int> data_int;
+  
+  std::vector<double> gradients;
+  coupled_mm_ode_fun f_;
+
+  for (auto _ : state) {
+    for (int n = 0; n < 2; ++n) {
+      stan::math::start_nested();
+      
+      std::vector<stan::math::var> theta
+	= {0.932858, 1.27742, 5.40574, 0.1821505};
+      std::vector<stan::math::var> y0_v
+	= {158.981, 20.7287};
+      
+      std::vector<stan::math::var> vars
+	= {theta[0], theta[1], theta[2], theta[3], y0_v[0], y0_v[1]};
+      
+      std::vector<std::vector<stan::math::var>> res
+	= stan::math::integrate_ode_rk45(f_, y0_v, t0, ts_long, theta, data,
+					 data_int, 0, 1E-6, 1E-6, 1000000000);
+
+      res[0][n].grad(vars, gradients);
+      //benchmark::DoNotOptimize(gradients.data());
+      escape(gradients.data());
+      stan::math::recover_memory_nested();
+    }
+    stan::math::recover_memory();
+  }
+}
+
+
 BENCHMARK(benchmark_autodiff_stack);
+BENCHMARK(benchmark_autodiff_stack_coupled_mm);
+BENCHMARK(benchmark_autodiff_stack_coupled_mm_nested);
 
 BENCHMARK_MAIN();
