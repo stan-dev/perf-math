@@ -202,7 +202,7 @@ static void benchmark_autodiff_stack_coupled_mm_nested(benchmark::State& state) 
 
 
 BENCHMARK(benchmark_autodiff_stack);
-BENCHMARK(benchmark_autodiff_stack_coupled_mm);
-BENCHMARK(benchmark_autodiff_stack_coupled_mm_nested);
+//BENCHMARK(benchmark_autodiff_stack_coupled_mm);
+//BENCHMARK(benchmark_autodiff_stack_coupled_mm_nested);
 
 BENCHMARK_MAIN();
