@@ -1,7 +1,7 @@
 MATH ?=math/
 include math/make/libraries
 
-CXXFLAGS+=-Ibenchmark/include -std=c++1y -Imath/ -O3
+CXXFLAGS+=-Ibenchmark/include -std=c++1y -Imath/ -O3 -I$(BOOST) -I$(SUNDIALS)/include -I$(EIGEN)
 LDLIBS+=-lbenchmark
 LDFLAGS+=-Lbenchmark/build/src
 CXX ?= clang++
