@@ -12,7 +12,7 @@ make tls_speed_eval-develop CXX='clang++ -std=c++11'
 
 # Without STAN_THREADS on faster-ad-tls
 cd math
-git checkout feature/faster-ad-tls
+git checkout feature/faster-ad-tls-v3
 git pull
 git reset --hard HEAD
 git clean -xffd
