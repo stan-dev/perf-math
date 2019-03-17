@@ -1,24 +1,14 @@
 #include <benchmark/benchmark.h>
 #include <Eigen/Dense>
-#include <stan/math/rev/core.hpp>
-
-static void escape(void *p) {
-  asm volatile("" : : "g"(p) : "memory");
-}
-
-static void clobber() {
-  asm volatile("" : : : "memory");
-}
 
 static void BM_EigenElementAccess(benchmark::State& state) {
   using Eigen::MatrixXd;
   auto m_d = MatrixXd::Random(500, 500).eval();
 
   for (auto _ : state) {
-    // Actual task
-    escape(m_d.data());
+    benchmark::DoNotOptimize(m_d.data());
     m_d(400);
-    clobber();
+    benchmark::ClobberMemory();
   }
 }
 BENCHMARK(BM_EigenElementAccess);
@@ -29,9 +19,9 @@ static void BM_EigenCoeff(benchmark::State& state) {
 
   for (auto _ : state) {
     // Actual task
-    escape(m_d.data());
+    benchmark::DoNotOptimize(m_d.data());
     m_d.coeff(400);
-    clobber();
+    benchmark::ClobberMemory();
   }
 }
 BENCHMARK(BM_EigenCoeff);
@@ -46,9 +36,9 @@ static void BM_VectorElementAccess(benchmark::State& state) {
   }
 
   for (auto _ : state) {
-    escape(v_d.data());
+    benchmark::DoNotOptimize(v_d.data());
     v_d[400];
-    clobber();
+    benchmark::ClobberMemory();
   }
 
 }
