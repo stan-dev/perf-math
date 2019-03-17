@@ -1,8 +1,8 @@
 #include <benchmark/benchmark.h>
 #include <Eigen/Dense>
+using Eigen::MatrixXd;
 
 static void BM_EigenElementAccess(benchmark::State& state) {
-  using Eigen::MatrixXd;
   auto m_d = MatrixXd::Random(500, 500).eval();
 
   for (auto _ : state) {
@@ -14,7 +14,6 @@ static void BM_EigenElementAccess(benchmark::State& state) {
 BENCHMARK(BM_EigenElementAccess);
 
 static void BM_EigenCoeff(benchmark::State& state) {
-  using Eigen::MatrixXd;
   auto m_d = MatrixXd::Random(500, 500).eval();
 
   for (auto _ : state) {
@@ -27,8 +26,6 @@ static void BM_EigenCoeff(benchmark::State& state) {
 BENCHMARK(BM_EigenCoeff);
 
 static void BM_VectorElementAccess(benchmark::State& state) {
-  using Eigen::MatrixXd;
-
   auto m_d = MatrixXd::Random(500, 500).eval();
   std::vector<double> v_d;
   for (int i = 0; i < m_d.size(); i++) {
