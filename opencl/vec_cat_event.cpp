@@ -81,7 +81,8 @@ static void vec_cat(benchmark::State& state) {
   for (auto _ : state) {
     state.PauseTiming();
     benchmark::DoNotOptimize(test_event);
-    // A lot of one is zero
+    // A lot of the time we'll have an empty matrix with other two having
+    // An extra dependency
     if (state.range(0) == 0) {
       v2.push_back(test_event);
       v3.push_back(test_event);
@@ -95,10 +96,10 @@ static void vec_cat(benchmark::State& state) {
     benchmark::DoNotOptimize(v2.data());
     benchmark::DoNotOptimize(v3.data());
     state.ResumeTiming();
-    if (state.range(1) == 1) {
+    if constexpr (state.range(1) == 1) {
       std::vector<cl::Event> test = vec_move_concat(v1, v2, v3);
       benchmark::ClobberMemory();
-    } else if (state.range(1) == 2){
+    } else if constexpr (state.range(1) == 2){
       std::vector<cl::Event> test = vec_push_concat(v1, v2, v3);
       benchmark::ClobberMemory();
     } else {
