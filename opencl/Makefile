@@ -21,7 +21,7 @@ event_push:
 	$(MAKE) ./vec_push_event && ./vec_push_event
 
 event_cat:
-	$(MAKE) ./vec_cat_event && ./vec_cat_event
+	$(MAKE) ./vec_cat_event && ./vec_cat_event --benchmark_repetitions=10 --benchmark_report_aggregates_only=true
 
 clean:
 	rm stdvector_event

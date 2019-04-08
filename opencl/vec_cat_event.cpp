@@ -5,6 +5,11 @@
 #include <vector>
 #include <iterator>
 
+// Nice syntax to allow in-order expansion of parameter packs.
+struct do_in_order {
+    template<typename T> do_in_order(std::initializer_list<T>&&) { }
+};
+
 // vec insert
 template <typename T>
 inline static const std::vector<T>& vec_push_concat(const std::vector<T>& v1) {
@@ -19,10 +24,24 @@ inline static const std::vector<T> vec_push_concat(const std::vector<T>& v1,
   return vec;
 }
 
-// Nice syntax to allow in-order expansion of parameter packs.
-struct do_in_order {
-    template<typename T> do_in_order(std::initializer_list<T>&&) { }
-};
+// vec insert
+template <typename T>
+inline static const std::vector<T>& vec_push_alloc_concat(const std::vector<T>& v1) {
+  return v1;
+}
+
+template <typename T, typename... Args>
+inline static const std::vector<T> vec_push_alloc_concat(const std::vector<T>& v1,
+                                       const Args... args) {
+  std::size_t s = v1.size();
+  do_in_order { s += args.size() ... };
+  std::vector<T> vec;
+  vec.reserve(s);
+  vec = vec_push_concat(args...);
+  vec.insert(vec.end(), v1.begin(), v1.end());
+  return vec;
+}
+
 
 namespace details {
 template<typename V> static void concat_helper(V& l, const V& r) {
@@ -46,46 +65,47 @@ static const std::vector<cl::Event> vec_move_concat(const std::vector<cl::Event>
 }
 
 static void CustomArguments(benchmark::internal::Benchmark* b) {
-  for (int j = 1; j <= 1024; j *= 2)
-    for (int i = 0; i <= 1; ++i)
-      b->Args({j, i});
+  std::vector<int> func_names = {1, 2, 3};
+  for (int j = 0; j <= 24; ++j)
+    for (auto&& name : func_names)
+      b->Args({j, name});
 }
 
 // Actual tests
-static void vec_move(benchmark::State& state) {
+static void vec_cat(benchmark::State& state) {
   std::vector<cl::Event> v1;
   std::vector<cl::Event> v2;
   std::vector<cl::Event> v3;
-  std::vector<cl::Event> v4;
-  std::vector<cl::Event> v5;
-  std::vector<cl::Event> v6;
   cl::Event test_event;
 
   for (auto _ : state) {
     state.PauseTiming();
     benchmark::DoNotOptimize(test_event);
+    // A lot of one is zero
+    if (state.range(0) == 0) {
+      v2.push_back(test_event);
+      v3.push_back(test_event);
+    }
     for (int i = 0; i < state.range(0); ++i) {
       v1.push_back(test_event);
       v2.push_back(test_event);
       v3.push_back(test_event);
-      v4.push_back(test_event);
-      v5.push_back(test_event);
-      v6.push_back(test_event);
     }
-    benchmark::DoNotOptimize(v1);
-    benchmark::DoNotOptimize(v2);
-    benchmark::DoNotOptimize(v3);
-    benchmark::DoNotOptimize(v4);
-    benchmark::DoNotOptimize(v5);
-    benchmark::DoNotOptimize(v6);
+    benchmark::DoNotOptimize(v1.data());
+    benchmark::DoNotOptimize(v2.data());
+    benchmark::DoNotOptimize(v3.data());
     state.ResumeTiming();
-    if (state.range(1)) {
-      std::vector<cl::Event> test = vec_move_concat(v1, v2, v3, v4, v5, v6);
+    if (state.range(1) == 1) {
+      std::vector<cl::Event> test = vec_move_concat(v1, v2, v3);
+      benchmark::ClobberMemory();
+    } else if (state.range(1) == 2){
+      std::vector<cl::Event> test = vec_push_concat(v1, v2, v3);
+      benchmark::ClobberMemory();
     } else {
-      std::vector<cl::Event> test = vec_push_concat(v1, v2, v3, v4, v5, v6);
+      std::vector<cl::Event> test = vec_push_alloc_concat(v1, v2, v3);
+      benchmark::ClobberMemory();
     }
-    benchmark::ClobberMemory();
   }
 }
-BENCHMARK(vec_move)->Apply(CustomArguments);
+BENCHMARK(vec_cat)->Apply(CustomArguments);
 BENCHMARK_MAIN();
