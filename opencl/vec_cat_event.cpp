@@ -96,10 +96,10 @@ static void vec_cat(benchmark::State& state) {
     benchmark::DoNotOptimize(v2.data());
     benchmark::DoNotOptimize(v3.data());
     state.ResumeTiming();
-    if constexpr (state.range(1) == 1) {
+    if (state.range(1) == 1) {
       std::vector<cl::Event> test = vec_move_concat(v1, v2, v3);
       benchmark::ClobberMemory();
-    } else if constexpr (state.range(1) == 2){
+    } else if (state.range(1) == 2){
       std::vector<cl::Event> test = vec_push_concat(v1, v2, v3);
       benchmark::ClobberMemory();
     } else {
