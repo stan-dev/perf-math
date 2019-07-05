@@ -1,14 +1,14 @@
 
-#include <iostream>
 #include <stan/math.hpp>
 #include <stan/math/opencl/copy.hpp>
 #include <stan/math/opencl/matrix_cl.hpp>
 #include <stan/math/rev/mat/fun/gp_exp_quad_cov.hpp>
-#include <chrono>
-#include <vector>
-#include <cstdio>
-#include <limits.h>
 #include <algorithm>
+#include <chrono>
+#include <cstdio>
+#include <iostream>
+#include <limits.h>
+#include <vector>
 
 using namespace Eigen;
 using namespace std;
@@ -198,26 +198,45 @@ void run_vector_vector_test(const std::string test_type, const std::vector<T>& o
 
 // Makes a linearly spaced vector from a to b of size N
 template <typename T>
-std::vector<T> linspace(T a, T b, size_t N) {
-    T h = (b - a) / static_cast<T>(N-1);
-    std::vector<T> xs(N);
-    typename std::vector<T>::iterator x;
-    T val;
-    for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h)
-        *x = val;
-    return xs;
+vector<T> lin_space(T min, T max, size_t N) {
+    vector<T> lin_vec;
+    auto step_size = (max - min) / static_cast<T>(N - 1);
+    for (int i = 0; i < N; i++) {
+        lin_vec.push_back(min + i * step_size);
+    }
+    return lin_vec;
 }
+
+// Makes a exponentially spaced vector whose elements range a to b with spacing N
+template <typename T>
+vector<T> exp_space(T low, T high, size_t N) {
+  auto linear_vec = lin_space(0.0, 1.0, N);
+  std::vector<T> exponential_vec(N);
+  auto exp_min = exp(0.0);
+  auto exp_max = exp(1.0);
+  // This is just rescaling the unit vector to be between high and low\
+  //  and applying the exp shape.
+  std::transform(linear_vec.begin(), linear_vec.end(), exponential_vec.begin(),
+    [&low, &high, &exp_min, &exp_max](T x) {
+      return (exp(x) - exp_min)/(exp_max - exp_min) * (high - low) + low;
+    });
+  return exponential_vec;
+}
+
+
 int main() {
 
-  auto outer_size_iters = linspace(0, 20000, 100);
+  auto outer_size_iters = exp_space(0.0, 20000.0, 30);
+  for (const auto& i: outer_size_iters) std::cout << i << ", ";
+  std::cout << "\n";
   run_simple_test("gpu", outer_size_iters);
   run_simple_test("cpu", outer_size_iters);
-  auto inner_size_iters = linspace(0, 50000, 10);
-  outer_size_iters = linspace(0, 3000, 20);
+  auto inner_size_iters = exp_space(0.0, 500000.0, 10);
+  outer_size_iters = exp_space(0.0, 3000.0, 10);
   run_l_vector_test("gpu", outer_size_iters, inner_size_iters);
   run_l_vector_test("cpu", outer_size_iters, inner_size_iters);
-  outer_size_iters = linspace(0, 3000, 20);
-  inner_size_iters = linspace(0, 50000, 10);
+  outer_size_iters = exp_space(0.0, 3000.0, 10);
+  inner_size_iters = exp_space(0.0, 500000.0, 10);
   run_vector_vector_test("gpu", outer_size_iters, inner_size_iters);
   run_vector_vector_test("cpu", outer_size_iters, inner_size_iters);
 }
