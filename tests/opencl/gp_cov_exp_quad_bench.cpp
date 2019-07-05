@@ -23,8 +23,7 @@ void print_speed(const std::string test_type, const std::string test_ret, const 
 
 auto set_tuning_opts_to_use_gpu(const std::string test_type) {
   if (test_type.compare("gpu") == 0) {
-    stan::math::opencl_context.tuning_opts().gp_exp_quad_cov_simple
-        = 1;
+    stan::math::opencl_context.tuning_opts().gp_exp_quad_cov_simple = 1;
     stan::math::opencl_context.tuning_opts().gp_exp_quad_cov_vec = 1;
   } else {
     stan::math::opencl_context.tuning_opts().gp_exp_quad_cov_simple = INT_MAX;
@@ -155,33 +154,70 @@ void test_speed_2vv(const std::string test_type, int size_x = 10000, int size_y 
   print_speed(test_type, "2vv", size_x, size_y, size_l, time);
 }
 
-void run_test(const std::string test_type, const std::vector<int>& outer_size_iters,
-   const std::vector<int>& inner_size_iters) {
+// Run the mode with two vectors and a double for length
+template <typename T>
+void run_simple_test(const std::string test_type, const std::vector<T>& outer_size_iters) {
   set_tuning_opts_to_use_gpu(test_type);
-  for(auto&& outer_size : outer_size_iters) {
-    for(auto&& inner_size : inner_size_iters) {
-      test_speed_2v(test_type, outer_size, outer_size, inner_size);
-      test_speed_2vv(test_type, outer_size, outer_size, inner_size);
-      test_speed_vv(test_type, outer_size, inner_size);
-      test_speed_2(test_type, outer_size, outer_size);
-      test_speed_v(test_type, outer_size, inner_size);
-      test_speed(test_type, outer_size);
+  for (int i = 0; i < 10; i++) {
+    for(auto&& outer_size : outer_size_iters) {
+        test_speed_2(test_type, outer_size, outer_size);
+        test_speed(test_type, outer_size);
     }
   }
 }
 
-int main() {
-  std::vector<int> outer_size_iters(30);
-  std::vector<int> inner_size_iters(30);
-  inner_size_iters[0] = 2;
-  printf("device, func_test, x_size, y_size, l_size, time\n");
-  for (int i = 0; i < 31; i++) {
-    outer_size_iters[i] = 100 * (i + 1);
+// Run the mode with two vectors and a vector for length
+template <typename T>
+void run_l_vector_test(const std::string test_type, const std::vector<T>& outer_size_iters,
+   const std::vector<T>& inner_size_iters) {
+  set_tuning_opts_to_use_gpu(test_type);
+  for (int i = 0; i < 10; i++) {
+    for(auto&& outer_size : outer_size_iters) {
+      for(auto&& inner_size : inner_size_iters) {
+        test_speed_2v(test_type, outer_size, outer_size, inner_size);
+        test_speed_v(test_type, outer_size, inner_size);
+      }
+    }
   }
-  for (int i = 1; i < 31; i++) {
-    inner_size_iters[i] = inner_size_iters[i - 1] * 1.5;
-  }
+}
 
-  run_test("gpu", outer_size_iters, inner_size_iters);
-  run_test("cpu", outer_size_iters, inner_size_iters);
+// Run the mode with two vectors of vectors with a vector for length
+template <typename T>
+void run_vector_vector_test(const std::string test_type, const std::vector<T>& outer_size_iters,
+   const std::vector<T>& inner_size_iters) {
+  set_tuning_opts_to_use_gpu(test_type);
+  for (int i = 0; i < 10; i++) {
+    for(auto&& outer_size : outer_size_iters) {
+      for(auto&& inner_size : inner_size_iters) {
+        test_speed_2vv(test_type, outer_size, outer_size, inner_size);
+        test_speed_vv(test_type, outer_size, inner_size);
+      }
+    }
+}
+}
+
+// Makes a linearly spaced vector from a to b of size N
+template <typename T>
+std::vector<T> linspace(T a, T b, size_t N) {
+    T h = (b - a) / static_cast<T>(N-1);
+    std::vector<T> xs(N);
+    typename std::vector<T>::iterator x;
+    T val;
+    for (x = xs.begin(), val = a; x != xs.end(); ++x, val += h)
+        *x = val;
+    return xs;
+}
+int main() {
+
+  auto outer_size_iters = linspace(0, 20000, 100);
+  run_simple_test("gpu", outer_size_iters);
+  run_simple_test("cpu", outer_size_iters);
+  auto inner_size_iters = linspace(0, 50000, 10);
+  outer_size_iters = linspace(0, 3000, 20);
+  run_l_vector_test("gpu", outer_size_iters, inner_size_iters);
+  run_l_vector_test("cpu", outer_size_iters, inner_size_iters);
+  outer_size_iters = linspace(0, 3000, 20);
+  inner_size_iters = linspace(0, 50000, 10);
+  run_vector_vector_test("gpu", outer_size_iters, inner_size_iters);
+  run_vector_vector_test("cpu", outer_size_iters, inner_size_iters);
 }
