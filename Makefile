@@ -1,12 +1,13 @@
 MATH ?=math/
 include math/make/libraries
+include math/make/compiler_flags
 
-CXXFLAGS+=-O3 -march=native -Ibenchmark/include -std=c++1y -Imath/ -I$(BOOST) -I$(SUNDIALS)/include -I$(EIGEN)
+CXXFLAGS+=-O3 -march=native -mtune=native -Ibenchmark/include -std=c++1y -Imath/ -I$(BOOST) -I$(SUNDIALS)/include -I$(EIGEN)
 LDLIBS+=-lbenchmark
 LDFLAGS+=-Lbenchmark/build/src
 CXX ?= clang++
 
-update: 
+update:
 	git submodule update --init --recursive
 
 benchmark/build/src/libbenchmark.a: benchmark benchmark/googletest update
