@@ -47,8 +47,8 @@ static void add_const_bench(benchmark::State& state) {
   for (auto _ : state) {
     auto result = add_const(A, B);
     B.grad();
+    stan::math::recover_memory();
   }
-  stan::math::recover_memory();
 }
 
 int start_val = 2;
@@ -61,8 +61,8 @@ static void add_pf_bench(benchmark::State& state) {
   for (auto _ : state) {
      auto result = add_pf(A, B);
      B.grad();
+     stan::math::recover_memory();
   }
-  stan::math::recover_memory();
 }
 
 BENCHMARK(add_pf_bench);
@@ -73,8 +73,8 @@ static void add_copy_bench(benchmark::State& state) {
   for (auto _ : state) {
      auto result = add_copy(A, B);
      B.grad();
+     stan::math::recover_memory();
   }
-  stan::math::recover_memory();
 }
 
 BENCHMARK(add_copy_bench);

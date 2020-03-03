@@ -40,7 +40,7 @@ static void add_constref_bench(benchmark::State& state) {
 }
 
 int start_val = 2;
-int end_val = 4096;
+int end_val = 2048;
 BENCHMARK(add_constref_bench)->RangeMultiplier(2)->Range(start_val, end_val);
 
 static void add_pf_bench(benchmark::State& state) {
