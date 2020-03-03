@@ -25,20 +25,20 @@ __attribute__ ((noinline, no_icf))  auto add_inner_copy(T1 A, T2 B) {
 template <typename T1, typename T2>
 __attribute__ ((noinline, no_icf))  auto add_const(const T1& A, const T2& B) {
   asm ("");
-  return add_inner_const(A, B);
+  return B + add_inner_const(A, B);
 }
 
 
 template <typename T1, typename T2>
 __attribute__ ((noinline, no_icf))  auto add_pf(T1&& A, T2&& B) {
   asm ("");
-  return add_inner_pf(std::forward<T1>(A), std::forward<T2>(B));
+  return B + add_inner_pf(std::forward<T1>(A), std::forward<T2>(B));
 }
 
 template <typename T1, typename T2>
 __attribute__ ((noinline, no_icf))  auto add_copy(T1 A, T2 B) {
   asm ("");
-  return add_inner_copy(A, B);
+  return B + add_inner_copy(A, B);
 }
 
 static void add_const_bench(benchmark::State& state) {
@@ -46,6 +46,7 @@ static void add_const_bench(benchmark::State& state) {
   stan::math::var B(10);
   for (auto _ : state) {
     auto result = add_const(A, B);
+    B.grad();
   }
   stan::math::recover_memory();
 }
@@ -59,6 +60,7 @@ static void add_pf_bench(benchmark::State& state) {
   stan::math::var B(10);
   for (auto _ : state) {
      auto result = add_pf(A, B);
+     B.grad();
   }
   stan::math::recover_memory();
 }
@@ -70,6 +72,7 @@ static void add_copy_bench(benchmark::State& state) {
   stan::math::var B(10);
   for (auto _ : state) {
      auto result = add_copy(A, B);
+     B.grad();
   }
   stan::math::recover_memory();
 }
