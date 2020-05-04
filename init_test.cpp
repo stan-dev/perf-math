@@ -21,6 +21,14 @@ inline auto make_double_vec(int sizer) {
 }
 
 static void multi_init_var_vec(benchmark::State& state) {
+  // log_prob is called multiple times reusing the stack allocated memory for vari
+  // so we want to allocate the stack memory we need once before running the full benchmark
+  {
+  std::vector<stan::math::var> make_var(8192, 0);
+  benchmark::DoNotOptimize(make_var.data());
+  benchmark::ClobberMemory();
+  stan::math::recover_memory();
+  }
   for (auto _ : state) {
     std::vector<stan::math::var> init_vec;
     benchmark::DoNotOptimize(init_vec.data());
@@ -32,6 +40,14 @@ static void multi_init_var_vec(benchmark::State& state) {
 }
 
 static void single_init_var_vec(benchmark::State& state) {
+  // log_prob is called multiple times reusing the stack allocated memory for vari
+  // so we want to allocate the stack memory we need once before running the full benchmark
+  {
+  std::vector<stan::math::var> make_var(8192, 0);
+  benchmark::DoNotOptimize(make_var.data());
+  benchmark::ClobberMemory();
+  stan::math::recover_memory();
+  }
   for (auto _ : state) {
     std::vector<stan::math::var> init_vec;
     benchmark::DoNotOptimize(init_vec.data());

@@ -43,8 +43,8 @@ __attribute__ ((noinline, no_icf))  auto add_copy(T1 A, T2 B) {
 
 template <typename T>
 static void add_const_bench(benchmark::State& state) {
-  T A(2.0);
-  T B(A);
+  Eigen::Matrix<T, -1, -1> A(2.0);
+  Eigen::Matrix<T, -1, -1> B(A);
   for (auto _ : state) {
     auto result = add_const(A, B);
   }
