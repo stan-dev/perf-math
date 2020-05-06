@@ -38,9 +38,14 @@ static void static_matmul_add(benchmark::State& state) {
   lp -= sum(x * y + x);
   benchmark::DoNotOptimize(lp.vi_);
   for (auto _ : state) {
+    auto start = std::chrono::high_resolution_clock::now();
     lp.grad();
-    benchmark::ClobberMemory();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed_seconds =
+      std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    state.SetIterationTime(elapsed_seconds.count());
     stan::math::set_zero_all_adjoints();
+    benchmark::ClobberMemory();
   }
   stan::math::recover_memory();
 }
@@ -58,9 +63,14 @@ static void dynamic_matmul_add(benchmark::State& state) {
   lp -= sum(x * y + x);
   benchmark::DoNotOptimize(lp.vi_);
   for (auto _ : state) {
+    auto start = std::chrono::high_resolution_clock::now();
     lp.grad();
-    benchmark::ClobberMemory();
+    auto end = std::chrono::high_resolution_clock::now();
+    auto elapsed_seconds =
+      std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+    state.SetIterationTime(elapsed_seconds.count());
     stan::math::set_zero_all_adjoints();
+    benchmark::ClobberMemory();
   }
   stan::math::recover_memory();
 }
@@ -69,6 +79,6 @@ static void dynamic_matmul_add(benchmark::State& state) {
 int start_val = 2;
 int end_val = 1024;
 BENCHMARK(toss_me);
-BENCHMARK(static_matmul_add)->RangeMultiplier(2)->Range(start_val, end_val);
-BENCHMARK(dynamic_matmul_add)->RangeMultiplier(2)->Range(start_val, end_val);
+BENCHMARK(static_matmul_add)->RangeMultiplier(2)->Range(start_val, end_val)->UseManualTime();
+BENCHMARK(dynamic_matmul_add)->RangeMultiplier(2)->Range(start_val, end_val)->UseManualTime();
 BENCHMARK_MAIN();
