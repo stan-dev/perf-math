@@ -41,40 +41,61 @@ __attribute__ ((noinline, no_icf))  auto add_copy(T1 A, T2 B) {
   return add_inner_copy(A, B);
 }
 
-static void add_constref_bench(benchmark::State& state) {
-  using mat_type = Eigen::Matrix<double, -1, -1>;
+// Just to kick off the stack allocation
+static void toss_me(benchmark::State& state) {
+  using stan::math::var;
+  using mat_type = Eigen::Matrix<var, -1, -1>;
   for (auto _ : state) {
-    Eigen::Matrix<double, -1, -1> result = add_const(std::move(mat_type::Random(state.range(0), state.range(0))),
+    Eigen::Matrix<var, -1, -1> result = add_copy(std::move(mat_type::Random(state.range(0), state.range(0))),
     std::move(mat_type::Random(state.range(0), state.range(0))));
     benchmark::DoNotOptimize(result.data());
     benchmark::ClobberMemory();
+    stan::math::recover_memory();
+  }
+}
+
+
+static void add_constref_bench(benchmark::State& state) {
+  using stan::math::var;
+  using mat_type = Eigen::Matrix<var, -1, -1>;
+  for (auto _ : state) {
+    Eigen::Matrix<var, -1, -1> result = add_const(std::move(mat_type::Random(state.range(0), state.range(0))),
+    std::move(mat_type::Random(state.range(0), state.range(0))));
+    benchmark::DoNotOptimize(result.data());
+    benchmark::ClobberMemory();
+    stan::math::recover_memory();
   }
 }
 
 static void add_pf_bench(benchmark::State& state) {
-  using mat_type = Eigen::Matrix<double, -1, -1>;
+  using stan::math::var;
+  using mat_type = Eigen::Matrix<var, -1, -1>;
   for (auto _ : state) {
-    Eigen::Matrix<double, -1, -1> result = add_pf(std::move(mat_type::Random(state.range(0), state.range(0))),
+    Eigen::Matrix<var, -1, -1> result = add_pf(std::move(mat_type::Random(state.range(0), state.range(0))),
     std::move(mat_type::Random(state.range(0), state.range(0))));
     benchmark::DoNotOptimize(result.data());
     benchmark::ClobberMemory();
+    stan::math::recover_memory();
   }
 }
 
 static void add_copy_bench(benchmark::State& state) {
-  using mat_type = Eigen::Matrix<double, -1, -1>;
+  using stan::math::var;
+  using mat_type = Eigen::Matrix<var, -1, -1>;
   for (auto _ : state) {
-    Eigen::Matrix<double, -1, -1> result = add_copy(std::move(mat_type::Random(state.range(0), state.range(0))),
+    Eigen::Matrix<var, -1, -1> result = add_copy(std::move(mat_type::Random(state.range(0), state.range(0))),
     std::move(mat_type::Random(state.range(0), state.range(0))));
     benchmark::DoNotOptimize(result.data());
     benchmark::ClobberMemory();
+    stan::math::recover_memory();
   }
 }
 
 // The start and ending sizes for the benchmark
 int start_val = 2;
 int end_val = 8192;
-BENCHMARK(add_constref_bench)->RangeMultiplier(2)->Range(start_val, end_val);
-BENCHMARK(add_pf_bench)->RangeMultiplier(2)->Range(start_val, end_val);
+BENCHMARK(toss_me)->RangeMultiplier(2)->Range(start_val, end_val);
 BENCHMARK(add_copy_bench)->RangeMultiplier(2)->Range(start_val, end_val);
+BENCHMARK(add_pf_bench)->RangeMultiplier(2)->Range(start_val, end_val);
+BENCHMARK(add_constref_bench)->RangeMultiplier(2)->Range(start_val, end_val);
 BENCHMARK_MAIN();
