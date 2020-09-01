@@ -7,7 +7,7 @@
 static void columns_dot_product(benchmark::State& state) {
   using stan::math::var;
   using stan::math::promote_scalar;
-  
+
   auto init = [](benchmark::State& state) {
     Eigen::MatrixXd x_val = Eigen::MatrixXd::Random(state.range(0), state.range(0));
     Eigen::MatrixXd y_val = Eigen::MatrixXd::Random(state.range(0), state.range(0));

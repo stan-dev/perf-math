@@ -1,16 +1,18 @@
 MATH ?=math/
--include $(HOME)/.config/stan/make.local  # user-defined variables 
+-include $(HOME)/.config/stan/make.local  # user-defined variables
 -include make/local                       # user-defined variables
+-include math/make/local                       # user-defined variables
+## Set default compiler
 include math/make/compiler_flags               # CXX, CXXFLAGS, LDFLAGS set by the end of this file
 include math/make/dependencies                 # rules for generating dependencies
 include math/make/libraries
 
-CXXFLAGS+=-Ibenchmark/include
+CXXFLAGS+=-Ibenchmark/include -mtune=native -march=native
 LDLIBS+=-lbenchmark -ltbb
 LDFLAGS+=-Lbenchmark/build/src
 CXX ?= clang++
 
-update: 
+update:
 	git submodule update --init --recursive
 
 benchmark/build/src/libbenchmark.a: benchmark benchmark/googletest update
@@ -18,3 +20,7 @@ benchmark/build/src/libbenchmark.a: benchmark benchmark/googletest update
 
 benchmark/googletest:
 	cd benchmark && git clone https://github.com/google/googletest
+
+
+	%$(EXE) : %.o $(MPI_TARGETS) $(TBB_TARGETS)
+		$(LINK.cpp) $^ $(LDLIBS) $(OUTPUT_OPTION)
