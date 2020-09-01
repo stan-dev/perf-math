@@ -7,7 +7,7 @@ BENCHMARK_CSVS = $(patsubst %,callback/%.csv,$(BENCHMARKS))
 .PHONY : clean_callback
 
 $(BENCHMARK_CSVS) : callback/%.csv : callback/%
-	$< --benchmark_color=false | tail -n +5 | sed "s/ns//g" | sed "s/\// /g" | sed "s/manual_time//" | tr -s ' ' | tr ' ' ',' > $@
+	$< --benchmark_color=false --benchmark_report_aggregates_only=false --benchmark_display_aggregates_only=false --benchmark_repetitions=30 | tail -n +5 | sed "s/ns//g" | sed "s/\// /g" | sed "s/manual_time//" | tr -s ' ' | tr ' ' ',' > $@
 
 callback/benchmark.csv : $(BENCHMARK_CSVS)
 	echo "benchmark,n,time,cpu,iterations" > $@
