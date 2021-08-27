@@ -1,14 +1,19 @@
-#ifndef CALLBACK_TOSS_ME_HPP
-#define CALLBACK_TOSS_ME_HPP
+#ifndef CALLBACK_SETUP_MEM_HPP
+#define CALLBACK_SETUP_MEM_HPP
 
 #include <benchmark/benchmark.h>
 #include <stan/math.hpp>
 #include <utility>
 
-static bool did_already = false;
-// Just to fill up the stack allocator
+/**
+ * Setup memory onto Stan's memory arena. When Stan is executing after the
+ * first run it should never allocate memory and just take memory from it's
+ * stack allocator. In order to replicate this in benchmarks we first call this
+ * function which places a bunch of memory on the stack allocator.
+ * and then free it for the next use.
+ */
 template <int Size>
-static void toss_me(benchmark::State& state) {
+static void setup_mem() {
   using stan::math::var;
   Eigen::Matrix<double, -1, -1> x_vals = Eigen::MatrixXd::Random(Size, Size);
   Eigen::Matrix<double, -1, -1> y_vals = Eigen::MatrixXd::Random(Size, Size);
@@ -20,13 +25,7 @@ static void toss_me(benchmark::State& state) {
     lp += x.coeffRef(i) * y.coeffRef(i) + x.coeffRef(i);
   }
   benchmark::DoNotOptimize(lp.vi_);
-  for (auto _ : state) {
-    if (!did_already) {
-      did_already = true;
-      lp.grad();
-      stan::math::set_zero_all_adjoints();
-    }
-  }
+  lp.grad();
   stan::math::recover_memory();
 }
 

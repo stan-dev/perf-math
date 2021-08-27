@@ -73,3 +73,10 @@ lib/boost_*/project-config.jam.1
 lib/boost_*/stage/
 lib/boost_*/tools/build/*
 lib/boost_*/user-config.jam
+
+## Ignore executables
+benches/*
+benches/!*.cpp
+
+.Rhistory
+nohup.out
