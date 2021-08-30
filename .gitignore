@@ -76,7 +76,7 @@ lib/boost_*/user-config.jam
 
 ## Ignore executables
 benches/*
-benches/!*.cpp
+!benches/*.cpp
 
 .Rhistory
 nohup.out
