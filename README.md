@@ -1,6 +1,6 @@
 ## Getting started
 ```
-git clone --recursive https://github.com/seantalts/perf-math.git
+git clone --recursive --shallow-submodules https://github.com/seantalts/perf-math.git
 ```
 
 ### First run 
@@ -8,7 +8,7 @@ git clone --recursive https://github.com/seantalts/perf-math.git
 (unless you have the Google benchmark library installed)
 ```
 cd benchmark
-git clone https://github.com/google/googletest
+git clone --depth=1 https://github.com/google/googletest
 mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=RELEASE
 make
